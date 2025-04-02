@@ -13,3 +13,5 @@ services:
       INFLUXDB_TOKEN: "izmaqz6qcGmmOP0BOR4uV6brFdQk3U7BpZl-tbKh7K0LnLHUud7p6mWzbRDFMaQuUokvm-imWNq0rYfp7De5yg=="
       INFLUXDB_ORG: "iot"
       INFLUXDB_BUCKET: "iot-device"
+    volumes:
+      - ./app:/app  # Esto asegurará que la carpeta `app` se copie dentro del contenedor
