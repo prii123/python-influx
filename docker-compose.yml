@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  mqtt-influx:
+    build: .
+    container_name: mqtt-influx
+    restart: always
+    environment:
+      MQTT_BROKER: "164.92.102.202"
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: "topic/temperatura"
+      INFLUXDB_URL: "http://164.92.102.202:8086"
+      INFLUXDB_TOKEN: "izmaqz6qcGmmOP0BOR4uV6brFdQk3U7BpZl-tbKh7K0LnLHUud7p6mWzbRDFMaQuUokvm-imWNq0rYfp7De5yg=="
+      INFLUXDB_ORG: "iot"
+      INFLUXDB_BUCKET: "iot-device"
