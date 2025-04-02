@@ -1,0 +1,14 @@
+{
+    "topic/temperatura": {
+      "measurement": "temperatura",
+      "tag": "sensor",
+      "value_field": "PT100-1",
+      "sensor_name": "esp32"
+    },
+    "topic/humedad": {
+      "measurement": "humedad",
+      "tag": "sensor",
+      "value_field": "valor",
+      "sensor_name": "dht22"
+    }
+  }
