@@ -1,7 +1,10 @@
 import os
 import json
+import time
+import threading
 import paho.mqtt.client as mqtt
 from influxdb_client import InfluxDBClient, Point
+from datetime import datetime
 
 # Cargar configuración desde topics.json
 TOPICS_FILE = os.path.join(os.path.dirname(__file__), "topics.json")
