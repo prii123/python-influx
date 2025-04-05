@@ -21,31 +21,69 @@ INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "iot-device")
 client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
 write_api = client.write_api()
 
+# Almacenar último dato por topic
+last_values = {}
+
 # Función cuando llega un mensaje MQTT
 def on_message(client, userdata, msg):
     try:
-        payload = float(msg.payload.decode())  # Convertir mensaje a número
+        payload = float(msg.payload.decode())
         print(f"Recibido: {payload} en {msg.topic}")
 
-        # Buscar configuración del topic
         topic_config = topics_config.get(msg.topic)
         if not topic_config:
             print(f"⚠️ Topic {msg.topic} no configurado en topics.json, ignorando...")
             return
 
-        # Crear punto en InfluxDB dinámicamente
-        point = (
-            Point(topic_config["measurement"])
-            .tag(topic_config["tag"], topic_config["sensor_name"])
-            .field(topic_config["value_field"], payload)
-        )
-
-        # Guardar en InfluxDB
-        write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point)
-        print(f"✅ Guardado en InfluxDB: {point}")
+        # Guardar último valor para procesamiento posterior
+        last_values[msg.topic] = {
+            "value": payload,
+            "config": topic_config,
+            "timestamp": datetime.utcnow()
+        }
 
     except Exception as e:
         print(f"❌ Error procesando mensaje: {e}")
+
+# Función periódica cada hora
+def procesar_periodicamente():
+    while True:
+        print("⏱ Procesando datos cada hora...")
+        for topic, data in last_values.items():
+            value = data["value"]
+            config = data["config"]
+            timestamp = data["timestamp"]
+
+            try:
+                # Guardar valor original como temperatura_medida
+                point_original = (
+                    Point(config["measurement"])
+                    .tag(config["tag"], config["sensor_name"])
+                    .field("temperatura_medida", value)
+                    .time(timestamp)
+                )
+                write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point_original)
+
+                # Guardar valor calculado como temperatura_calculada
+                point_calculado = (
+                    Point(config["measurement"])
+                    .tag(config["tag"], config["sensor_name"])
+                    .field("temperatura_calculada", value - 2)
+                    .time(timestamp)
+                )
+                write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point_calculado)
+
+                print(f"✅ Guardado: medida={value}, calculada={value - 2} en {topic}")
+
+            except Exception as e:
+                print(f"❌ Error guardando en InfluxDB para {topic}: {e}")
+
+        # Esperar una hora
+        time.sleep(3600)
+
+# Iniciar thread para procesamiento periódico
+thread = threading.Thread(target=procesar_periodicamente, daemon=True)
+thread.start()
 
 # Conectar a MQTT
 mqtt_client = mqtt.Client()
@@ -59,4 +97,3 @@ for topic in topics_config.keys():
 
 print("🚀 Escuchando MQTT...")
 mqtt_client.loop_forever()
-
