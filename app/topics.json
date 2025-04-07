@@ -3,13 +3,13 @@
       "measurement": "temperatura",
       "tag": "sensor",
       "value_field": "PT100-1",
-      "sensor_name": "esp32"
+      "sensor_name": "CAVA-3"
     },
     "topic/temperatura_ajustada": {
       "measurement": "temperatura",
       "tag": "sensor",
       "value_field": "PT100-1",
-      "sensor_name": "esp32"
+      "sensor_name": "CAVA-3"
     },
     "topic/humedad": {
       "measurement": "humedad",
