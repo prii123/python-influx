@@ -71,12 +71,12 @@ def procesar_periodicamente():
                 point_calculado = (
                     Point(config["measurement"])
                     .tag(config["tag"], config["sensor_name"])
-                    .field("temperatura_calculada", value - 2)
+                    .field("temperatura_calculada", value + 1.5)
                     .time(timestamp)
                 )
                 write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point_calculado)
 
-                print(f"✅ Guardado: medida={value}, calculada={value - 2} en {topic}")
+                print(f"✅ Guardado: medida={value}, calculada={value + 1.5} en {topic}")
 
             except Exception as e:
                 print(f"❌ Error guardando en InfluxDB para {topic}: {e}")
