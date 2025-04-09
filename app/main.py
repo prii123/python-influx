@@ -98,7 +98,7 @@ def procesar_cada_5_segundos():
                 point_rapido = (
                     Point(config["measurement"])
                     .tag(config["tag"], config["sensor_name"])
-                    .field("temperatura_medida_rapida", value)
+                    .field("temperatura_5s", value)
                     .time(timestamp)
                 )
                 write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point_rapido)
