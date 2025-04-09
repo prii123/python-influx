@@ -84,11 +84,40 @@ def procesar_periodicamente():
         # Esperar una hora
         time.sleep(3600)
 
-# Iniciar thread para procesamiento periódico
-thread = threading.Thread(target=procesar_periodicamente, daemon=True)
-thread.start()
+# Función periódica cada 5 segundos
+def procesar_cada_5_segundos():
+    while True:
+        print("📥 Guardando datos cada 5 segundos...")
+        for topic, data in last_values.items():
+            value = data["value"]
+            config = data["config"]
+            timestamp = datetime.utcnow()  # Usamos el tiempo actual
 
-# Conectar a MQTT
+            try:
+                # Guardar valor como temperatura_medida_rapida
+                point_rapido = (
+                    Point(config["measurement"])
+                    .tag(config["tag"], config["sensor_name"])
+                    .field("temperatura_medida_rapida", value)
+                    .time(timestamp)
+                )
+                write_api.write(bucket=INFLUXDB_BUCKET, org=INFLUXDB_ORG, record=point_rapido)
+
+                print(f"✅ [5s] Guardado rápido: {value} en {topic}")
+
+            except Exception as e:
+                print(f"❌ [5s] Error guardando en InfluxDB para {topic}: {e}")
+
+        time.sleep(5)
+
+# Iniciar threads para procesamiento periódico
+thread_hourly = threading.Thread(target=procesar_periodicamente, daemon=True)
+thread_hourly.start()
+
+thread_fast = threading.Thread(target=procesar_cada_5_segundos, daemon=True)
+thread_fast.start()
+
+# Conectar a MQTT y comenzar loop
 mqtt_client = mqtt.Client()
 mqtt_client.on_message = on_message
 mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
@@ -100,3 +129,19 @@ for topic in topics_config.keys():
 
 print("🚀 Escuchando MQTT...")
 mqtt_client.loop_forever()
+# # Iniciar thread para procesamiento periódico
+# thread = threading.Thread(target=procesar_periodicamente, daemon=True)
+# thread.start()
+
+# # Conectar a MQTT
+# mqtt_client = mqtt.Client()
+# mqtt_client.on_message = on_message
+# mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+
+# # Suscribirse a todos los topics definidos en el JSON
+# for topic in topics_config.keys():
+#     mqtt_client.subscribe(topic)
+#     print(f"📡 Suscrito a {topic}")
+
+# print("🚀 Escuchando MQTT...")
+# mqtt_client.loop_forever()
